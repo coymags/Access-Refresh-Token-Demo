@@ -6,7 +6,11 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const generateToken = (id) => {
-    return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
+    return jwt.sign({id}, process.env.JWT_SECRET_ACCESS_TOKEN, {expiresIn: '1h'})
+}
+
+const generateRefreshToken = (id) => {
+    return jwt.sign({id}, process.env.JWT_SECRET_REFRESH_TOKEN, {expiresIn: '7d'})
 }
 
 exports.createUser = async (req, res) => {
@@ -55,6 +59,14 @@ exports.userLogin = async (req, res) => {
             return res.status(401).json({message: 'Wrong Password'})
         }
 
+        //Sending RefreshToken as http-only cookie
+        res.cookie("refreshToken", generateRefreshToken(user.id), {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
         //Username Exist and Password is match. Response will be send to the frontend
         res.json({
             _id: user._id,
@@ -64,5 +76,28 @@ exports.userLogin = async (req, res) => {
     } catch (error) {
         console.error(error)
     }
+}
 
+exports.refreshToken = async (req, res) => {
+    const token = req.cookies?.refreshToken
+    console.log("Cookies:", req.cookies)
+    console.log("Headers:", req.headers.cookie)
+    console.log("Refresh Token:", token)
+    try {
+        if(!token){
+            return res.sendStatus(401)
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET_REFRESH_TOKEN, (err, decoded) => {
+            if(err){
+                return res.sendStatus(403)
+            }
+
+            const accessToken = generateToken(decoded.id)
+
+            res.json({accessToken})
+        })
+    } catch (error) {
+        console.error(error)
+    }
 }

@@ -3,12 +3,18 @@ import { useState } from "react"
 import { FaFacebook, FaGoogle } from "react-icons/fa" 
 import { MdEmail } from "react-icons/md"
 
+//Importing AuthContext to store data
+import { AuthContext } from "../context/authContext"
+import { useContext } from "react"
 
 import { useNavigate } from "react-router-dom"
 
 
 
 function Login() {
+
+    //Hook to store the access token 
+    const { accessToken, setAccessToken } = useContext(AuthContext)
 
     const navigate = useNavigate()
     const [ formData, setFormData ] = useState({ username:"", password:""})
@@ -27,8 +33,15 @@ function Login() {
         e.preventDefault()
         //Server Endpoint here Authentication is a must
         try {
-            const response = await axios.post('http://localhost:3000/users/login', formData)
-            console.log(response.data.token)
+            const response = await axios.post('http://localhost:3000/users/login', formData, {
+                withCredentials: true
+            })
+            
+            setAccessToken(response.data.token)
+            //console.log(response.data)
+            //Navigate to Home page
+            navigate('/home')
+            
         } catch (error) {
             console.error(error)
             if(error.response.data.message == 'Enter a valid Username'){
@@ -45,10 +58,10 @@ function Login() {
         }
     }
 
-    
     const goToRegister = () => {
         navigate('/register')
     }
+
     return (
         <>
             <div className="w-full h-screen flex justify-center items-center">
