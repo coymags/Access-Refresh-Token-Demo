@@ -80,9 +80,9 @@ exports.userLogin = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
     const token = req.cookies?.refreshToken
-    console.log("Cookies:", req.cookies)
-    console.log("Headers:", req.headers.cookie)
-    console.log("Refresh Token:", token)
+    //console.log("Cookies:", req.cookies)
+    //console.log("Headers:", req.headers.cookie)
+    //console.log("Refresh Token:", token)
     try {
         if(!token){
             return res.sendStatus(401)
